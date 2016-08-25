@@ -1,0 +1,10 @@
+commands = ['SOR', 'CONTMOD', 'STEPMOD', 'APCMOD', 'ENCMOD', 'HALLSPEED', 'ENCSPEED', 'GEARMOD', 'VOLTMOD', 'IXRMOD', 'ENCRES', 'KN', 'RM',
+            'STW', 'STN', 'MV', 'MAV', 'ADL', 'ADR', 'SIN', 'NET', 'BAUD', 'NODEADR', 'ANSW', 'POLNUM', 'SENSTYP', 'LL', 'APL', 'SP', 'AC',
+            'DEC', 'SR', 'POR', 'I', 'PP', 'PD', 'CI', 'LPC', 'LCC', 'DEV', 'CORRIDOR', 'ERROUT', 'ENCOUT', 'DIGOUT', 'POSOUT', 'DIRIN',
+            'REFIN', 'DCE', 'LPN', 'CO', 'SO', 'TO', 'SETPLC', 'SETTTL', 'HP', 'HB', 'HD', 'SHA', 'SHL', 'SHN', 'HOSP', 'POHOSEQ', 'HA',
+            'HL', 'HN', 'CST', 'GMOD', 'GENCRES', 'GKN', 'GRM', 'GSTW', 'GSTN', 'GMV', 'GMAV', 'GPL', 'GNL', 'GSP', 'GAC', 'GDEC', 'GSR',
+            'GPOR', 'GI', 'GPP', 'GPD', 'GCI', 'GPC', 'GCC', 'GDEV', 'GCORRIDOR', 'GNODEADR', 'IOC', 'GDCE', 'GPN', 'HOC', 'GHOSP', 'NE',
+            'SAVE', 'EEPSAV', 'RESET', 'RN', 'FCONFIG', 'DI', 'EN', 'M', 'LA', 'LR', 'NP', 'NPOFF', 'V', 'NV', 'NVOFF', 'U', 'GOHOSEQ',
+            'FHIX', 'GOHIX', 'GOIX', 'HO', 'GTYP', 'GSER', 'VER', 'POS', 'TPOS', 'GV', 'GN', 'GU', 'GRU', 'GCL', 'GRC', 'TEM', 'GADV', 'OST',
+            'SWS', 'PROGSEQ', 'GPROGSEQ', 'ENPROG', 'DIPROG', 'RESUME', 'MEM', 'DELAY', 'TIMEOUT', 'JMP', 'JMPGx', 'JMPLx', 'JMPEx', 'JPH',
+            'JPF', 'JPT', 'JPD', 'JPE', 'SETx', 'GETx', 'ADDx', 'SETARGx', 'DxJNZ', 'ERI', 'RETI', 'DIERI', 'CALL', 'RET', 'A']

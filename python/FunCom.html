@@ -1,0 +1,53 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html><head><title>Python: module FunCom</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+</head><body bgcolor="#f0f0f8">
+
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="heading">
+<tr bgcolor="#7799ee">
+<td valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial">&nbsp;<br><big><big><strong>FunCom</strong></big></big></font></td
+><td align=right valign=bottom
+><font color="#ffffff" face="helvetica, arial"><a href=".">index</a><br><a href="file:c%3A%5Cusers%5Cwittr%5Cdocuments%5Cgithub%5Ccrap%5Cpython%5Cfuncom.py">c:\users\wittr\documents\github\crap\python\funcom.py</a></font></td></tr></table>
+    <p><tt>Function&nbsp;common<br>
+A&nbsp;collection&nbsp;of&nbsp;more&nbsp;or&nbsp;less&nbsp;well&nbsp;documented&nbsp;function&nbsp;for&nbsp;common&nbsp;usage<br>
+&nbsp;<br>
+This&nbsp;should&nbsp;always&nbsp;be&nbsp;subject&nbsp;to<br>
+python&nbsp;-m&nbsp;pydoc&nbsp;-w&nbsp;FunCom<br>
+wrote&nbsp;FunCom.html</tt></p>
+<p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#eeaa77">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Functions</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#eeaa77"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl><dt><a name="-avg"><strong>avg</strong></a>(l)</dt><dd><tt>:param&nbsp;l:&nbsp;list&nbsp;of&nbsp;numbers&nbsp;to&nbsp;be&nbsp;averaged<br>
+:return:&nbsp;&nbsp;average&nbsp;of&nbsp;numbers&nbsp;in&nbsp;list</tt></dd></dl>
+ <dl><dt><a name="-conv"><strong>conv</strong></a>(value, fromLow=0, fromHigh=0, toLow=0, toHigh=0, func=None)</dt><dd><tt>Re-maps&nbsp;a&nbsp;number&nbsp;from&nbsp;one&nbsp;range&nbsp;to&nbsp;another.&nbsp;That&nbsp;is,&nbsp;a&nbsp;value&nbsp;of&nbsp;fromLow&nbsp;would&nbsp;get&nbsp;mapped&nbsp;to&nbsp;toLow,&nbsp;a&nbsp;value&nbsp;of&nbsp;fromHigh&nbsp;to&nbsp;toHigh,&nbsp;values&nbsp;in-between&nbsp;to&nbsp;values&nbsp;in-between,&nbsp;etc.<br>
+&nbsp;<br>
+Does&nbsp;not&nbsp;constrain&nbsp;values&nbsp;to&nbsp;within&nbsp;the&nbsp;range,&nbsp;because&nbsp;out-of-range&nbsp;values&nbsp;are&nbsp;sometimes&nbsp;intended&nbsp;and&nbsp;useful.&nbsp;The&nbsp;constrain()&nbsp;function&nbsp;may&nbsp;be&nbsp;used&nbsp;either&nbsp;before&nbsp;or&nbsp;after&nbsp;this&nbsp;function,&nbsp;if&nbsp;limits&nbsp;to&nbsp;the&nbsp;ranges&nbsp;are&nbsp;desired.<br>
+&nbsp;<br>
+Note&nbsp;that&nbsp;the&nbsp;"lower&nbsp;bounds"&nbsp;of&nbsp;either&nbsp;range&nbsp;may&nbsp;be&nbsp;larger&nbsp;or&nbsp;smaller&nbsp;than&nbsp;the&nbsp;"upper&nbsp;bounds"&nbsp;so&nbsp;the&nbsp;<a href="#-conv">conv</a>()&nbsp;function&nbsp;may&nbsp;be&nbsp;used&nbsp;to&nbsp;reverse&nbsp;a&nbsp;range&nbsp;of&nbsp;numbers,&nbsp;for&nbsp;example<br>
+y&nbsp;=&nbsp;<a href="#-conv">conv</a>(x,&nbsp;1,&nbsp;50,&nbsp;50,&nbsp;1)<br>
+&nbsp;<br>
+The&nbsp;function&nbsp;also&nbsp;handles&nbsp;negative&nbsp;numbers&nbsp;well,&nbsp;so&nbsp;that&nbsp;this&nbsp;example<br>
+y&nbsp;=&nbsp;<a href="#-conv">conv</a>(x,&nbsp;1,&nbsp;50,&nbsp;50,&nbsp;-100)<br>
+is&nbsp;also&nbsp;valid&nbsp;and&nbsp;works&nbsp;well.<br>
+&nbsp;<br>
+:param&nbsp;value:&nbsp;&nbsp;&nbsp;&nbsp;the&nbsp;number&nbsp;to&nbsp;map<br>
+:param&nbsp;fromLow:&nbsp;&nbsp;the&nbsp;lower&nbsp;bound&nbsp;of&nbsp;the&nbsp;value's&nbsp;current&nbsp;range<br>
+:param&nbsp;fromHigh:&nbsp;the&nbsp;upper&nbsp;bound&nbsp;of&nbsp;the&nbsp;value's&nbsp;current&nbsp;range<br>
+:param&nbsp;toLow:&nbsp;&nbsp;&nbsp;&nbsp;the&nbsp;lower&nbsp;bound&nbsp;of&nbsp;the&nbsp;value's&nbsp;target&nbsp;range<br>
+:param&nbsp;toHigh:&nbsp;&nbsp;&nbsp;the&nbsp;upper&nbsp;bound&nbsp;of&nbsp;the&nbsp;value's&nbsp;target&nbsp;range<br>
+:param&nbsp;func:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;function&nbsp;to&nbsp;be&nbsp;applied&nbsp;on&nbsp;result<br>
+:return:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The&nbsp;mapped&nbsp;value.</tt></dd></dl>
+ <dl><dt><a name="-dinc"><strong>dinc</strong></a>(dict, key, count=1)</dt><dd><tt>dictionary&nbsp;increase,&nbsp;increases&nbsp;a&nbsp;key&nbsp;or&nbsp;creates&nbsp;if&nbsp;key&nbsp;does&nbsp;not&nbsp;exist<br>
+:param&nbsp;dict:&nbsp;&nbsp;target&nbsp;dictionary<br>
+:param&nbsp;key:&nbsp;&nbsp;&nbsp;key&nbsp;to&nbsp;increase<br>
+:param&nbsp;count:&nbsp;size&nbsp;of&nbsp;increment</tt></dd></dl>
+ <dl><dt><a name="-even"><strong>even</strong></a>(number)</dt><dd><tt>:param&nbsp;number:&nbsp;to&nbsp;be&nbsp;checked<br>
+:return:&nbsp;Bool&nbsp;-&nbsp;True&nbsp;if&nbsp;number&nbsp;is&nbsp;even,&nbsp;False&nbsp;otherwise&nbsp;(return&nbsp;number&nbsp;%&nbsp;2&nbsp;==&nbsp;0)</tt></dd></dl>
+ <dl><dt><a name="-find_between"><strong>find_between</strong></a>(s, first, last)</dt></dl>
+</td></tr></table>
+</body></html>

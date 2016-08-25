@@ -1,0 +1,3 @@
+# TUMAGA - Turtle Maze Game
+A Python Turtle based thingy made for fun...
+The amazon class and auto.py are perhaps the most usefull stuff in here.

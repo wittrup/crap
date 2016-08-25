@@ -1,0 +1,25 @@
+### JetBrains template     =~=~=~=~=~=~=~=~=~=~=~=
+# Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio
+
+*.iml
+
+## Directory-based project format:
+.idea/
+
+### Python template     =~=~=~=~=~=~=~=~=~=~=~=
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Django stuff:
+*.log
+
+# Created by .ignore support plugin (hsz.mobi)
+
+###############################
+fiddl*.py
+ignore
+*.bf
+*.stdin
+*.stdout
