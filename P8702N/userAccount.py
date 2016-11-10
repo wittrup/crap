@@ -1,3 +1,5 @@
+import impat
+impat.addfolder('python')
 from random import randrange
 from FunCom import find_between
 from session import login, host, usr, pwd

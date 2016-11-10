@@ -1,3 +1,5 @@
+import impat
+impat.addfolder('python')
 import requests
 from FunCom import find_between
 from session import login, host, cookies
