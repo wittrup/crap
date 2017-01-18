@@ -1,8 +1,12 @@
 """should be added to Environmental Variable PYTHONSTARTUP so it runs at beginning of every python console"""
-import os, socket
+import os, socket, struct, json, sys
 import threading
 from time import sleep
 from difflib import SequenceMatcher
+
+UDP = 0
+TCP = 1
+MCAST = 2
 
 def similar(a, b):
     subst = a.lower() in b.lower() or b.lower() in a.lower() # One string in the other weighs more than stringmatching
@@ -38,9 +42,18 @@ class Wipe(object):
         return ""
 
 class listenthread(threading.Thread):
-    def __init__(self, IP, PORT, SOCK_TYPE):
-        self.sock = socket.socket(socket.AF_INET, SOCK_TYPE)# Internet
-        self.sock.bind((IP, PORT))
+    def __init__(self, IP, PORT, SOCK_TYPE, PROTO):
+        self.sock = socket.socket(socket.AF_INET, SOCK_TYPE, PROTO)# Internet
+        self.address = (IP, PORT)
+        self.dase = b''
+        if PROTO == socket.IPPROTO_UDP: # if multicast
+            self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            if IP:
+                self.mreq = struct.pack("4sl", socket.inet_aton(IP), socket.INADDR_ANY)
+                self.sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, self.mreq)
+            self.sock.bind(('', PORT))
+        else: # UDP and TCP
+            self.sock.bind((IP, PORT))
         self.sock_type = SOCK_TYPE
         if SOCK_TYPE == socket.SOCK_STREAM:
             self.sock.listen(1)
@@ -59,27 +72,41 @@ class listenthread(threading.Thread):
                     recv_data = conn.recv(1024)
                 else:
                     recv_data, addr = self.sock.recvfrom(1024)
-                if recv_data:
+                if recv_data and recv_data != self.dase:
                     print(recv_data, 'from', addr)
             except:
                 self._stop.set()
 
-def listen(IP, PORT, SOCK_TYPE=socket.SOCK_DGRAM):
-    server_thread = listenthread(IP, PORT, SOCK_TYPE)
+    def send(self, text):
+        self.dase = bytes(text, 'ascii')
+        if self.sock_type == socket.SOCK_STREAM: # TCP
+            self.sock.send(self.dase)
+        else:
+            self.sock.sendto(self.dase, self.address)
+
+def _listen(IP, PORT, SOCK_TYPE=socket.SOCK_DGRAM, PROTO=0):
+    server_thread = listenthread(IP, PORT, SOCK_TYPE, PROTO)
     server_thread.daemon = True
     server_thread.start()
     try:
-        while True: sleep(0.1)
+        while True:
+            query = input()
+            if query.upper() == 'CLEAR':
+                repr(Wipe())
+            else:
+                server_thread.send(query)
     except (KeyboardInterrupt, SystemExit):
         print('Closing socket...')
         server_thread.close()
     print('Closed...')
 
-def udp_listen(UDP_IP, UDP_PORT):
-    listen(UDP_IP, UDP_PORT)
-
-def tcp_listen(UDP_IP, UDP_PORT):
-    listen(UDP_IP, UDP_PORT, socket.SOCK_STREAM)
+def listen(TYPE, IP, PORT):
+    if TYPE == TCP:
+        _listen(IP, PORT, socket.SOCK_STREAM)
+    elif TYPE == MCAST:
+        _listen(IP, PORT, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
+    else:
+        _listen(IP, PORT)
 
 clear = Wipe()
 
