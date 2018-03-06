@@ -62,6 +62,7 @@ if adresser['sokStatus']['ok'] and adresser['totaltAntallTreff'] > 0:
             print(filename)
             text = grunnbok.pdfextracttext(filename)
             eiere = ''
+            helenavn = ''
             for match in re.findall(r'\n([\wÆØÅ]+) ([-\w ÆØÅ]+?)\s?(IDEELL:)? ?([\d/]*)\nF.NR: (\d+)', text):
                 envn, fnvn, idel, andl, fnmr = list(match)
                 fnvn = fnvn.split(' ')[0].split('-')[0].rstrip()
@@ -70,5 +71,6 @@ if adresser['sokStatus']['ok'] and adresser['totaltAntallTreff'] > 0:
                     eiere = eiere.replace(' ' + envn, ' & ' + fnvn + ' ' + envn)
                 else:
                     eiere += (' & ' if eiere else '') + fnvn + ' ' + envn
-            print(husnr, eiere, file=liste, sep='\t')
+                helenavn += fnvn + ' ' + envn + ', '
+            print(husnr, eiere, helenavn[:-2], file=liste, sep='\t')
             sns += 1

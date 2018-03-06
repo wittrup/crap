@@ -1,4 +1,5 @@
 """should be added to Environmental Variable PYTHONSTARTUP so it runs at beginning of every python console"""
+from __future__ import print_function
 import os, socket, struct, json, sys
 import threading
 from time import sleep
@@ -19,7 +20,7 @@ class newput():
     def readline(self):
         return self.file.readline().rstrip()
 
-def listinput(file=None,l=[]):
+def listinput(file=None, _list=[]):
     """Generate list from every line of input until KeyboardInterrupt, SystemExit, EOFError"""
     _input = newput(file).readline if file is not None and os.path.isfile(file) else input
     last = ''
@@ -29,11 +30,11 @@ def listinput(file=None,l=[]):
             if data == '' and last == '':
                 break
             elif data != '':
-                l.append(data)
+                _list.append(data)
             last = data
         except (KeyboardInterrupt, SystemExit, EOFError):
             break
-    return l
+    return _list
 
 class Wipe(object):
     """This class is intended to be used as a console command to clear screen"""
@@ -66,7 +67,7 @@ class listenthread(threading.Thread):
     def run(self):
         while not self._stop.isSet():
             try:
-                if self.sock_type == socket.SOCK_STREAM:
+                if self.sock_type == socket.SOCK_STREAM: # TCP
                     conn, addr = self.sock.accept()
                     print('Connection address:', addr)
                     recv_data = conn.recv(1024)
@@ -78,7 +79,10 @@ class listenthread(threading.Thread):
                 self._stop.set()
 
     def send(self, text):
-        self.dase = bytes(text, 'ascii')
+        if sys.version_info < (3, 0):
+            self.dase = bytes(text)
+        else:
+            self.dase = bytes(text, 'ascii')
         if self.sock_type == socket.SOCK_STREAM: # TCP
             self.sock.send(self.dase)
         else:
@@ -90,7 +94,7 @@ def _listen(IP, PORT, SOCK_TYPE=socket.SOCK_DGRAM, PROTO=0):
     server_thread.start()
     try:
         while True:
-            query = input()
+            query =  raw_input() if sys.version_info < (3, 0) else input()
             if query.upper() == 'CLEAR':
                 repr(Wipe())
             else:
