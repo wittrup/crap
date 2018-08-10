@@ -4,6 +4,9 @@ import os, socket, struct, json, sys
 import threading
 from time import sleep
 from difflib import SequenceMatcher
+import hashlib
+import pyotp
+
 
 UDP = 0
 TCP = 1
@@ -35,12 +38,6 @@ def listinput(file=None, _list=[]):
         except (KeyboardInterrupt, SystemExit, EOFError):
             break
     return _list
-
-class Wipe(object):
-    """This class is intended to be used as a console command to clear screen"""
-    def __repr__(self):
-        os.system('cls' if os.name=='nt' else 'clear')
-        return ""
 
 class listenthread(threading.Thread):
     def __init__(self, IP, PORT, SOCK_TYPE, PROTO):
@@ -111,6 +108,19 @@ def listen(TYPE, IP, PORT):
         _listen(IP, PORT, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
     else:
         _listen(IP, PORT)
+
+class totp(pyotp.TOTP):
+    def __init__(self, s, digits=6, digest=hashlib.sha1):
+        if type(s) == str:  # Avoids ERROR: test_match_rfc AttributeError: 'int' object has no attribute 'upper'
+            s = ''.join(c for c in s if c.upper() in "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567=")
+        pyotp.TOTP.__init__(self, s, digits, digest)
+
+
+class Wipe(object):
+    """This class is intended to be used as a console command to clear screen"""
+    def __repr__(self):
+        os.system('cls' if os.name=='nt' else 'clear')
+        return ""
 
 clear = Wipe()
 
