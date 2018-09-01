@@ -39,22 +39,42 @@ def listinput(file=None, _list=[]):
             break
     return _list
 
+
+def tcp_client_handler(main, conn, addr):
+    print('Connection address:', addr)
+    head = ':'.join(map(str, addr))
+    while True:
+        try:
+            recv_data = conn.recv(1024)
+            if recv_data and recv_data != main.dase:
+                msg = recv_data.strip()
+                if msg:
+                    print(head, msg)
+            if not recv_data:
+                break
+        except socket.error as error:
+            print('SOCKET ERROR', error)
+    print('Disconnect:', addr)
+    conn.close()
+
+
 class listenthread(threading.Thread):
     def __init__(self, IP, PORT, SOCK_TYPE, PROTO):
-        self.sock = socket.socket(socket.AF_INET, SOCK_TYPE, PROTO)# Internet
+        self.sock = socket.socket(socket.AF_INET, SOCK_TYPE, PROTO)  # Internet
         self.address = (IP, PORT)
         self.dase = b''
-        if PROTO == socket.IPPROTO_UDP: # if multicast
+        if PROTO == socket.IPPROTO_UDP:  # if multicast
             self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             if IP:
                 self.mreq = struct.pack("4sl", socket.inet_aton(IP), socket.INADDR_ANY)
                 self.sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, self.mreq)
             self.sock.bind(('', PORT))
-        else: # UDP and TCP
+        else:  # UDP and TCP
             self.sock.bind((IP, PORT))
         self.sock_type = SOCK_TYPE
-        if SOCK_TYPE == socket.SOCK_STREAM:
-            self.sock.listen(1)
+        if SOCK_TYPE == socket.SOCK_STREAM:  # TCP
+            self.sock.listen()
+            self.clients = []
         super(listenthread, self).__init__()
         self._stop = threading.Event()
 
@@ -64,24 +84,32 @@ class listenthread(threading.Thread):
     def run(self):
         while not self._stop.isSet():
             try:
-                if self.sock_type == socket.SOCK_STREAM: # TCP
+                if self.sock_type == socket.SOCK_STREAM:  # TCP
+                    print('Waiting for connections...')
                     conn, addr = self.sock.accept()
-                    print('Connection address:', addr)
-                    recv_data = conn.recv(1024)
+                    threading.Thread(target=tcp_client_handler,args=(self, conn, addr)).start()
+                    self.clients.append((conn, addr))
                 else:
                     recv_data, addr = self.sock.recvfrom(1024)
-                if recv_data and recv_data != self.dase:
-                    print(recv_data, 'from', addr)
+                    if recv_data and recv_data != self.dase:
+                        print(recv_data, 'from', addr)
             except:
                 self._stop.set()
+        print('SERVER: Thread stopped')
 
     def send(self, text):
         if sys.version_info < (3, 0):
             self.dase = bytes(text)
         else:
             self.dase = bytes(text, 'ascii')
-        if self.sock_type == socket.SOCK_STREAM: # TCP
-            self.sock.send(self.dase)
+        if self.sock_type == socket.SOCK_STREAM:  # TCP
+            for i, client in reversed(list(enumerate(self.clients))):
+                try:
+                    conn, addr = client
+                    conn.sendall(self.dase)
+                except:
+                    print('SERVER:', addr, 'lost.')
+                    self.clients.pop(i)
         else:
             self.sock.sendto(self.dase, self.address)
 
