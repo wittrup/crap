@@ -23,21 +23,23 @@ class newput():
     def readline(self):
         return self.file.readline().rstrip()
 
-def listinput(file=None, _list=[]):
+def listinput(file=None, ls=None):
     """Generate list from every line of input until KeyboardInterrupt, SystemExit, EOFError"""
     _input = newput(file).readline if file is not None and os.path.isfile(file) else input
     last = ''
+    if ls is None:
+        ls = []
     while True:
         try:
             data = _input()
             if data == '' and last == '':
                 break
             elif data != '':
-                _list.append(data)
+                ls.append(data)
             last = data
         except (KeyboardInterrupt, SystemExit, EOFError):
             break
-    return _list
+    return ls
 
 
 def tcp_client_handler(main, conn, addr):
@@ -164,6 +166,7 @@ if os.name=='nt':
     EnumWindowsProc = ctypes.WINFUNCTYPE(ctypes.c_bool, ctypes.POINTER(ctypes.c_int), ctypes.POINTER(ctypes.c_int))
     GetWindowText = ctypes.windll.user32.GetWindowTextW
     GetWindowTextLength = ctypes.windll.user32.GetWindowTextLengthW
+    SetWindowPos = ctypes.windll.user32.SetWindowPos
     IsWindowVisible = ctypes.windll.user32.IsWindowVisible
 
     def foreach_window(hwnd, lParam):
@@ -193,3 +196,14 @@ if os.name=='nt':
         EnumWindows(EnumWindowsProc(foreach_window), 0)
         s = max(similar(title, s) for title in windows)[1]
         ShowWindow(FindWindow(None, s), 5)
+    def place(s, x, y, cx, cy):
+        """
+        :param s:   Target window title
+        :param x:   The new position of the left side of the window, in client coordinates.
+        :param y:   The new position of the top of the window, in client coordinates.
+        :param cx:  The new width of the window, in pixels.
+        :param cy:  The new height of the window, in pixels.
+        :return: None   """
+        EnumWindows(EnumWindowsProc(foreach_window), 0)
+        s = max(similar(title, s) for title in windows)[1]
+        SetWindowPos(FindWindow(None, s), 0, x, y, cx, cy, 4)  # https://docs.microsoft.com/en-us/windows/desktop/api/winuser/nf-winuser-setwindowpos
