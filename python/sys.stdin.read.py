@@ -1,6 +1,6 @@
 from os.path import isfile
-from startup import newput
+from startup import NewPut
 file = 'sys.stdin'
-input = newput(file).readline if file is not None and isfile(file) else input
+input = NewPut(file).readline if file is not None and isfile(file) else input
 
 

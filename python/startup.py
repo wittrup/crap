@@ -1,8 +1,10 @@
 """should be added to Environmental Variable PYTHONSTARTUP so it runs at beginning of every python console"""
 from __future__ import print_function
-import os, socket, struct, json, sys
+import os
+import socket
+import struct
+import sys
 import threading
-from time import sleep
 from difflib import SequenceMatcher
 import hashlib
 import pyotp
@@ -12,20 +14,24 @@ UDP = 0
 TCP = 1
 MCAST = 2
 
+
 def similar(a, b):
     subst = a.lower() in b.lower() or b.lower() in a.lower() # One string in the other weighs more than stringmatching
     ratio = SequenceMatcher(None, a, b).ratio()
     return ratio * (subst + 0.5), a, b
 
-class newput():
+
+class NewPut:
     def __init__(self, file):
         self.file = open(file)
+
     def readline(self):
         return self.file.readline().rstrip()
 
+
 def listinput(file=None, ls=None):
     """Generate list from every line of input until KeyboardInterrupt, SystemExit, EOFError"""
-    _input = newput(file).readline if file is not None and os.path.isfile(file) else input
+    _input = NewPut(file).readline if file is not None and os.path.isfile(file) else input
     last = ''
     if ls is None:
         ls = []
@@ -60,9 +66,10 @@ def tcp_client_handler(main, conn, addr):
     conn.close()
 
 
-class listenthread(threading.Thread):
+class ListenThread(threading.Thread):
     def __init__(self, IP, PORT, SOCK_TYPE, PROTO):
         self.sock = socket.socket(socket.AF_INET, SOCK_TYPE, PROTO)  # Internet
+        self.sock_udp = None
         self.address = (IP, PORT)
         self.dase = b''
         if PROTO == socket.IPPROTO_UDP:  # if multicast
@@ -77,25 +84,29 @@ class listenthread(threading.Thread):
         if SOCK_TYPE == socket.SOCK_STREAM:  # TCP
             self.sock.listen()
             self.clients = []
-        super(listenthread, self).__init__()
+        super(ListenThread, self).__init__()
         self._stop = threading.Event()
+        self._UDP_endpoints = []
 
     def close(self):
         self.sock.close()
 
     def run(self):
-        while not self._stop.isSet():
+        while not self._stop.is_set():
             try:
                 if self.sock_type == socket.SOCK_STREAM:  # TCP
                     print('Waiting for connections...')
                     conn, addr = self.sock.accept()
-                    threading.Thread(target=tcp_client_handler,args=(self, conn, addr)).start()
+                    threading.Thread(target=tcp_client_handler, args=(self, conn, addr)).start()
                     self.clients.append((conn, addr))
                 else:
                     recv_data, addr = self.sock.recvfrom(1024)
                     if recv_data and recv_data != self.dase:
+                        if addr not in self._UDP_endpoints:
+                            print(addr, type(addr))
+                            self._UDP_endpoints.append(addr)
                         print(recv_data, 'from', addr)
-            except:
+            except:  # PEP 8: E722 do not use bare 'except' Too broad exception clause
                 self._stop.set()
         print('SERVER: Thread stopped')
 
@@ -112,18 +123,39 @@ class listenthread(threading.Thread):
                 except:
                     print('SERVER:', addr, 'lost.')
                     self.clients.pop(i)
+            for addr in self._UDP_endpoints:
+                try:
+                    self.sock_udp.sendto(self.dase, addr)
+                    print('UDP send from TCP', addr, self.dase)
+                except Exception as e:
+                    print(addr, e)
+        elif self.sock_type == socket.SOCK_DGRAM:
+            for addr in self._UDP_endpoints:
+                self.sock.sendto(self.dase, addr)
+                print('UDP send from UDP', addr, self.dase)
         else:
             self.sock.sendto(self.dase, self.address)
 
+    def add_udp(self, addr):
+        if self.sock_udp is None:
+            self.sock_udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)  # UDP
+            self.sock_udp.bind(('0.0.0.0', 0))
+        if addr not in self._UDP_endpoints:
+            self._UDP_endpoints.append(addr)
+
+
 def _listen(IP, PORT, SOCK_TYPE=socket.SOCK_DGRAM, PROTO=0):
-    server_thread = listenthread(IP, PORT, SOCK_TYPE, PROTO)
+    server_thread = ListenThread(IP, PORT, SOCK_TYPE, PROTO)
     server_thread.daemon = True
     server_thread.start()
     try:
         while True:
-            query =  raw_input() if sys.version_info < (3, 0) else input()
+            query = raw_input() if sys.version_info < (3, 0) else input()
+            splits = list(map(str.upper, query.split()))
             if query.upper() == 'CLEAR':
                 repr(Wipe())
+            elif query and splits[0] == 'UDP':
+                server_thread.add_udp((splits[1], int(splits[2])))
             else:
                 server_thread.send(query)
     except (KeyboardInterrupt, SystemExit):
@@ -131,15 +163,22 @@ def _listen(IP, PORT, SOCK_TYPE=socket.SOCK_DGRAM, PROTO=0):
         server_thread.close()
     print('Closed...')
 
-def listen(TYPE, IP, PORT):
-    if TYPE == TCP:
-        _listen(IP, PORT, socket.SOCK_STREAM)
-    elif TYPE == MCAST:
-        _listen(IP, PORT, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
-    else:
+
+def listen(*kwargs):
+    if 3 == len(kwargs):
+        TYPE, IP, PORT = kwargs
+        if TYPE == TCP:
+            _listen(IP, PORT, socket.SOCK_STREAM)
+        elif TYPE == MCAST:
+            _listen(IP, PORT, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
+        else:
+            _listen(IP, PORT)
+    elif 2 == len(kwargs):
+        IP, PORT = kwargs
         _listen(IP, PORT)
 
-class totp(pyotp.TOTP):
+
+class Totp(pyotp.TOTP):
     def __init__(self, s, digits=6, digest=hashlib.sha1):
         if type(s) == str:  # Avoids ERROR: test_match_rfc AttributeError: 'int' object has no attribute 'upper'
             s = ''.join(c for c in s if c.upper() in "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567=")
@@ -152,9 +191,10 @@ class Wipe(object):
         os.system('cls' if os.name=='nt' else 'clear')
         return ""
 
+
 clear = Wipe()
 
-if os.name=='nt':
+if os.name == 'nt':
     import ctypes
     FindWindow = ctypes.windll.user32.FindWindowW
     ShowWindow = ctypes.windll.user32.ShowWindow
@@ -179,7 +219,6 @@ if os.name=='nt':
         return True
     windows = {}
 
-
     def hide(s):
         """       Hide a window
         :param s: Target window title
@@ -188,6 +227,7 @@ if os.name=='nt':
         EnumWindows(EnumWindowsProc(foreach_window), 0)
         s = max(similar(title, s) for title in windows)[1]
         ShowWindow(FindWindow(None, s), 0)
+
     def show(s):
         """       Show a window
         :param s: Target window title
@@ -196,6 +236,7 @@ if os.name=='nt':
         EnumWindows(EnumWindowsProc(foreach_window), 0)
         s = max(similar(title, s) for title in windows)[1]
         ShowWindow(FindWindow(None, s), 5)
+
     def place(s, x, y, cx, cy):
         """
         :param s:   Target window title
@@ -206,4 +247,5 @@ if os.name=='nt':
         :return: None   """
         EnumWindows(EnumWindowsProc(foreach_window), 0)
         s = max(similar(title, s) for title in windows)[1]
-        SetWindowPos(FindWindow(None, s), 0, x, y, cx, cy, 4)  # https://docs.microsoft.com/en-us/windows/desktop/api/winuser/nf-winuser-setwindowpos
+        # https://docs.microsoft.com/en-us/windows/desktop/api/winuser/nf-winuser-setwindowpos
+        SetWindowPos(FindWindow(None, s), 0, x, y, cx, cy, 4)
