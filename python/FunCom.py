@@ -6,6 +6,7 @@ python -m pydoc -w FunCom
 wrote FunCom.html
 """
 
+
 def find_between(s, first, last):
     try:
         start = s.index( first ) + len( first )
@@ -13,6 +14,7 @@ def find_between(s, first, last):
         return s[start:end]
     except ValueError:
         return ""
+
 
 def avg(l):
     """:param l: list of numbers to be averaged
@@ -23,6 +25,7 @@ def avg(l):
     else:
         return sum(l)
 
+
 def dinc(dict, key, count=1):
     """dictionary increase, increases a key or creates if key does not exist
     :param dict:  target dictionary
@@ -30,10 +33,12 @@ def dinc(dict, key, count=1):
     :param count: size of increment"""
     dict[key] = count + dict[key] if key in dict else count
 
+
 def even(number):
     """:param number: to be checked
     :return: Bool - True if number is even, False otherwise (return number % 2 == 0)"""
     return number % 2 == 0
+
 
 def conv(value, fromLow=0, fromHigh=0, toLow=0, toHigh=0, func=None):
     """Re-maps a number from one range to another. That is, a value of fromLow would get mapped to toLow, a value of fromHigh to toHigh, values in-between to values in-between, etc.

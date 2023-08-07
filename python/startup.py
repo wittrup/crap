@@ -85,14 +85,17 @@ class ListenThread(threading.Thread):
             self.sock.listen()
             self.clients = []
         super(ListenThread, self).__init__()
-        self._stop = threading.Event()
+        self.alive = threading.Event()
+        self.alive.set()
         self._UDP_endpoints = []
 
-    def close(self):
+    def join(self, timeout=None):
         self.sock.close()
+        self.alive.clear()
+        threading.Thread.join(self, timeout)
 
     def run(self):
-        while not self._stop.is_set():
+        while self.alive.is_set():
             try:
                 if self.sock_type == socket.SOCK_STREAM:  # TCP
                     print('Waiting for connections...')
@@ -107,7 +110,7 @@ class ListenThread(threading.Thread):
                             self._UDP_endpoints.append(addr)
                         print(recv_data, 'from', addr)
             except:  # PEP 8: E722 do not use bare 'except' Too broad exception clause
-                self._stop.set()
+                self.alive.clear()
         print('SERVER: Thread stopped')
 
     def send(self, text):
@@ -160,7 +163,7 @@ def _listen(IP, PORT, SOCK_TYPE=socket.SOCK_DGRAM, PROTO=0):
                 server_thread.send(query)
     except (KeyboardInterrupt, SystemExit):
         print('Closing socket...')
-        server_thread.close()
+        server_thread.join()
     print('Closed...')
 
 
