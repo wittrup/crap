@@ -1,5 +1,9 @@
-"""should be added to Environmental Variable PYTHONSTARTUP so it runs at beginning of every python console"""
+"""
+Add to Environmental Variable PYTHONSTARTUP to run at beginning of every python console
+Requirements: pip install pyotp
+"""
 from __future__ import print_function
+from time import sleep
 import os
 import socket
 import struct
@@ -13,6 +17,23 @@ import pyotp
 UDP = 0
 TCP = 1
 MCAST = 2
+
+BOTTOM = 1      # Places window at bottom of Z order. If the hWnd parameter identifies a topmost window,
+                # window loses its topmost status and is placed at the bottom of all other windows.
+NOTOPMOST = -2  # Places the window above all non-topmost windows (that is, behind all topmost windows).
+                # This flag has no effect if the window is already a non-topmost window.
+TOP=0           # Places the window at the top of the Z order.
+TOPMOST = -1    # Places the window above all non-topmost windows.
+                # The window maintains its topmost position even when it is deactivated.
+
+
+
+def conv(value, fromLow=0, fromHigh=0, toLow=0, toHigh=0, func=None):
+    result = (value - fromLow) * (toHigh - toLow) / (fromHigh - fromLow) + toLow
+    if func is None:
+        return result
+    else:
+        return func(result)
 
 
 def similar(a, b):
@@ -48,24 +69,6 @@ def listinput(file=None, ls=None):
     return ls
 
 
-def tcp_client_handler(main, conn, addr):
-    print('Connection address:', addr)
-    head = ':'.join(map(str, addr))
-    while True:
-        try:
-            recv_data = conn.recv(1024)
-            if recv_data and recv_data != main.dase:
-                msg = recv_data.strip()
-                if msg:
-                    print(head, msg)
-            if not recv_data:
-                break
-        except socket.error as error:
-            print('SOCKET ERROR', error)
-    print('Disconnect:', addr)
-    conn.close()
-
-
 class ListenThread(threading.Thread):
     def __init__(self, IP, PORT, SOCK_TYPE, PROTO):
         self.sock = socket.socket(socket.AF_INET, SOCK_TYPE, PROTO)  # Internet
@@ -88,6 +91,7 @@ class ListenThread(threading.Thread):
         self.alive = threading.Event()
         self.alive.set()
         self._UDP_endpoints = []
+        self.lock = threading.Lock()
 
     def join(self, timeout=None):
         self.sock.close()
@@ -100,8 +104,9 @@ class ListenThread(threading.Thread):
                 if self.sock_type == socket.SOCK_STREAM:  # TCP
                     print('Waiting for connections...')
                     conn, addr = self.sock.accept()
-                    threading.Thread(target=tcp_client_handler, args=(self, conn, addr)).start()
-                    self.clients.append((conn, addr))
+                    with self.lock:
+                        self.clients.append(conn)
+                    threading.Thread(target=self.handle_client, args=(conn, addr), daemon=True).start()
                 else:
                     recv_data, addr = self.sock.recvfrom(1024)
                     if recv_data and recv_data != self.dase:
@@ -112,6 +117,21 @@ class ListenThread(threading.Thread):
             except:  # PEP 8: E722 do not use bare 'except' Too broad exception clause
                 self.alive.clear()
         print('SERVER: Thread stopped')
+
+    def handle_client(self, conn, addr):
+        try:
+            while self.alive.is_set():
+                data = conn.recv(1024)
+                if not data:
+                    break
+                print(f"[CLIENT {addr}] {data.decode()}")
+        except Exception as e:
+            print(f"[CLIENT ERROR] {addr}: {e}")
+        finally:
+            with self.lock:
+                self.clients.remove(conn)
+            conn.close()
+            print(f"[CLIENT] {addr} disconnected")
 
     def send(self, text):
         if sys.version_info < (3, 0):
@@ -199,8 +219,10 @@ clear = Wipe()
 
 if os.name == 'nt':
     import ctypes
+    from ctypes import wintypes
     FindWindow = ctypes.windll.user32.FindWindowW
     ShowWindow = ctypes.windll.user32.ShowWindow
+    GetWindowRect = ctypes.windll.user32.GetWindowRect
 
     window_ignore = ['', 'Default IME', 'MSCTFIME UI', 'GDI+ Window', 'CWNPTransportImpl', 'DDE Server Window',
                      'Task Host Window', 'Windows Push Notifications Platform', 'Windows Shell Experience Host',
@@ -222,33 +244,50 @@ if os.name == 'nt':
         return True
     windows = {}
 
+    def find_window_hwnd(title):
+        if type(title) != str:
+            return title
+        EnumWindows(EnumWindowsProc(foreach_window), 0)
+        title = max(similar(window_title, title) for window_title in windows)[1]
+        hwnd = FindWindow(None, title)
+        print(f"Found '{title}'@{hwnd}")
+        return hwnd
+
     def hide(s):
         """       Hide a window
         :param s: Target window title
         :return:  None
         :OS:      WINDOWS"""
-        EnumWindows(EnumWindowsProc(foreach_window), 0)
-        s = max(similar(title, s) for title in windows)[1]
-        ShowWindow(FindWindow(None, s), 0)
+        ShowWindow(find_window_hwnd(s), 0)
 
     def show(s):
         """       Show a window
         :param s: Target window title
         :return:  None
         :OS:      WINDOWS"""
-        EnumWindows(EnumWindowsProc(foreach_window), 0)
-        s = max(similar(title, s) for title in windows)[1]
-        ShowWindow(FindWindow(None, s), 5)
+        ShowWindow(find_window_hwnd(s), 5)
 
-    def place(s, x, y, cx, cy):
+    def place(hwnd, x=0, y=0, cx=0, cy=0, HIA=TOP):
         """
         :param s:   Target window title
         :param x:   The new position of the left side of the window, in client coordinates.
         :param y:   The new position of the top of the window, in client coordinates.
         :param cx:  The new width of the window, in pixels.
         :param cy:  The new height of the window, in pixels.
+        :param HIA: hWndInsertAfter
         :return: None   """
-        EnumWindows(EnumWindowsProc(foreach_window), 0)
-        s = max(similar(title, s) for title in windows)[1]
+
+        hwnd = find_window_hwnd(hwnd)
+        if any([0 == n for n in (x, y, cx, cy)]):
+            x, y, cx, cy = winpos(hwnd)
+            cx = abs(cx - x)
+            cy = abs(cy - y)
+        print(x, y, cx, cy)
         # https://docs.microsoft.com/en-us/windows/desktop/api/winuser/nf-winuser-setwindowpos
-        SetWindowPos(FindWindow(None, s), 0, x, y, cx, cy, 4)
+        SetWindowPos(hwnd, HIA, x, y, cx, cy, 4)
+
+    def winpos(hwnd):
+        hwnd = find_window_hwnd(hwnd)
+        rect = wintypes.RECT()
+        GetWindowRect(hwnd, ctypes.pointer(rect))
+        return (rect.left, rect.top, rect.right, rect.bottom)
